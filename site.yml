@@ -1,0 +1,85 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+          - name: Install nginx php and php-fpm
+            apt:
+                name: ['nginx', 'php', 'php-fpm']
+                state: present
+                update_cache: yes
+
+          - name: Stop Apache2 service
+            service:
+                    name: apache2
+                    state: stopped
+                    enabled: no
+
+          - name: Copy Index.php file
+            copy:
+              src: index.php
+              dest: /var/www/html
+
+          - name: Copy nginx default config file
+            copy:
+              src: default
+              dest: /etc/nginx/sites-available/default
+
+          - name: Restart nginx service
+            service:
+                    name: nginx
+                    state: restarted
+                    enabled: yes
+
+          - name: validate webservice
+            command: curl -k http://10.0.1.18
+            register: web
+
+          - debug: var=web.stdout_lines
+
+- hosts: haproxy
+  become: yes
+  tasks:
+          - name: Install haproxy service
+            apt:
+                    name: haproxy
+                    state: latest
+                    update_cache: yes
+
+          - name: Update haproxy config file
+            blockinfile:
+                path: /etc/haproxy/haproxy.cfg
+                block: |
+                  frontend http-in
+                  bind 10.0.1.30:80
+                  default_backend    backend_servers
+                  option             forwardfor
+
+                  backend backend_servers
+                  balance            roundrobin
+                  server devA 10.0.1.18:80 check
+                  server devB 10.0.1.24:80 check
+                  server devC 10.0.1.21:80 check
+
+          - name: Restart haproxy service
+            service:
+                    name: haproxy
+                    state: restarted
+                    enabled: yes
+          
+          - name: Hit HAProxy server on first attempt to find response
+            command: curl -k http://45.114.122.103
+            register: attemtpt1
+
+          - debug: var=attemtpt1.stdout_lines
+
+          - name: Hit HAProxy server on second attempt to find response
+            command: curl -k http://45.114.122.103
+            register: attemtpt2
+
+          - debug: var=attemtpt2.stdout_lines
+
+          - name: Hit HAProxy server on third attempt to find response
+            command: curl -k http://45.114.122.103
+            register: attemtpt3
+
+          - debug: var=attemtpt3.stdout_lines
