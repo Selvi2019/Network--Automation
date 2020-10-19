@@ -1,13 +1,13 @@
 [haproxy]
-10.0.1.30
+devhaproxy
 
 [webservers]
-10.0.1.18
-10.0.1.24
-10.0.1.21
+devA
+devB
+devC
 
 [all:vars]
 ansible_user=ubuntu
-ansible_ssh_private_key_file=/home/ubuntu/selvi_project/id_rsa_bastionet2598
-ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p -q ubuntu@45.114.122.109"'
+ansible_ssh_private_key_file=/home/ubuntu/.ssh/id_rsa
+
 
