@@ -56,9 +56,9 @@
 
                   backend backend_servers
                   balance            roundrobin
-                  server devA 10.0.1.25:80 check
-                  server devB 10.0.1.27:80 check
-                  server devC 10.0.1.13:80 check
+                  server devA  check
+                  server devB  check
+                  server devC  check
 
           - name: Restart haproxy service
             service:
