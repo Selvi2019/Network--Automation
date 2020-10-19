@@ -50,7 +50,7 @@
                 path: /etc/haproxy/haproxy.cfg
                 block: |
                   frontend http-in
-                  bind devhaproxy:80
+                  bind devhaproxy
                   default_backend    backend_servers
                   option             forwardfor
 
