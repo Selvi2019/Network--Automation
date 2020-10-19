@@ -31,7 +31,7 @@
                     enabled: yes
 
           - name: validate webservice
-            command: curl -k http://10.0.1.18
+            command: curl -k http://devA
             register: web
 
           - debug: var=web.stdout_lines
@@ -50,15 +50,15 @@
                 path: /etc/haproxy/haproxy.cfg
                 block: |
                   frontend http-in
-                  bind 10.0.1.30:80
+                  bind devhaproxy:80
                   default_backend    backend_servers
                   option             forwardfor
 
                   backend backend_servers
                   balance            roundrobin
-                  server devA 10.0.1.18:80 check
-                  server devB 10.0.1.24:80 check
-                  server devC 10.0.1.21:80 check
+                  server devA 10.0.1.25:80 check
+                  server devB 10.0.1.27:80 check
+                  server devC 10.0.1.13:80 check
 
           - name: Restart haproxy service
             service:
@@ -67,19 +67,19 @@
                     enabled: yes
           
           - name: Hit HAProxy server on first attempt to find response
-            command: curl -k http://45.114.122.103
+            command: curl -k http://devhaproxy
             register: attemtpt1
 
           - debug: var=attemtpt1.stdout_lines
 
           - name: Hit HAProxy server on second attempt to find response
-            command: curl -k http://45.114.122.103
+            command: curl -k http://devhaproxy
             register: attemtpt2
 
           - debug: var=attemtpt2.stdout_lines
 
           - name: Hit HAProxy server on third attempt to find response
-            command: curl -k http://45.114.122.103
+            command: curl -k http://devhaproxy
             register: attemtpt3
 
           - debug: var=attemtpt3.stdout_lines
