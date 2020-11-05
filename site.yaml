@@ -1,0 +1,74 @@
+---
+- hosts: webservers
+  become: yes
+  tasks:
+          - name: Install nginx php and php-fpm
+            apt:
+                name: ['nginx', 'php', 'php-fpm']
+                state: present
+                update_cache: yes
+                
+          #- name: Stop Apache2 service
+            #service:
+                    #name: apache2
+                    #state: stopped
+                    #enabled: no
+
+
+          - name: Create php file
+            become: true
+            copy:
+                 dest: "/var/www/html/index.php"
+                 content: |
+                   <?php echo date("Y-m-d H:i:s") . " Welcome to " . gethostname() . "|" .$_SERVER['SERVER_ADDR'] .":" . $_SERVER['SERVER_PORT'] ."<br>\n"; ?>
+
+
+          - name: Copy nginx default config file
+            copy:
+              src: default
+              dest: /etc/nginx/sites-available/default
+
+          - name: Restart nginx service
+            become: true
+            service:
+              name=nginx
+              state=restarted
+
+
+- hosts: webservers
+  tasks:
+    - debug: var=ansible_all_ipv4_addresses                    
+
+
+- hosts: haproxy
+  become: yes
+  tasks:
+          - name: Install haproxy service
+            apt:
+                    name: haproxy
+                    state: latest
+                    update_cache: yes
+
+          - name: Update haproxy config file
+            blockinfile:
+                path: /etc/haproxy/haproxy.cfg
+                block: |
+                  frontend haproxy
+                      bind *:80
+                      default_backend backend_servers
+                  
+                  backend backend_servers
+                      balance roundrobin
+                      mode http
+                      option forwardfor
+                  {%  for server in groups['webservers'] %}
+                      server {{ hostvars[server]['inventory_hostname'] }} {{ hostvars[server]['ansible_default_ipv4']['address']}}:80 check
+                  {% endfor %}
+                  
+          - name: Restart haproxy service
+            service:
+                    name: haproxy
+                    state: restarted
+                    enabled: yes
+          
+
