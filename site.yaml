@@ -8,11 +8,11 @@
                 state: present
                 update_cache: yes
                 
-          #- name: Stop Apache2 service
-            #service:
-                    #name: apache2
-                    #state: stopped
-                    #enabled: no
+          - name: Stop Apache2 service
+            service:
+                    name: apache2
+                    state: stopped
+                    enabled: no
 
 
           - name: Create php file
